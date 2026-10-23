@@ -1,0 +1,7 @@
+{
+  "filename": "mars_dqn_latest.pt",
+  "train_steps": 0,
+  "is_trained": true,
+  "epsilon": 1.0,
+  "timestamp": 1792685623.9171827
+}

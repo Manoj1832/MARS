@@ -1,0 +1,49 @@
+services:
+  benchmark-app:
+    build:
+      context: ../benchmark-app
+      dockerfile: Dockerfile
+    image: mars-benchmark-app:latest
+    labels:
+      mars.service: "benchmark-app"
+    environment:
+      - WORK_ITERATIONS=40000
+    restart: unless-stopped
+    networks:
+      - mars-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9000/health')"]
+      interval: 4s
+      timeout: 3s
+      retries: 3
+      start_period: 4s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: mars-nginx
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - benchmark-app
+    restart: unless-stopped
+    networks:
+      - mars-net
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: mars-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - mars-net
+
+networks:
+  mars-net:
+    driver: bridge
